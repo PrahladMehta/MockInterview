@@ -1,10 +1,10 @@
-/* Modern Futuristic Mock Interview Styles */
+
 @import url("https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap");
 
 :root {
-  --primary: #4f46e5;
-  --primary-light: #6366f1;
-  --primary-dark: #4338ca;
+  --primary: #6366f1;
+  --primary-light: #818cf8;
+  --primary-dark: #4f46e5;
   --secondary: #10b981;
   --secondary-light: #34d399;
   --secondary-dark: #059669;
@@ -15,26 +15,27 @@
   --card-foreground: #1e293b;
   --border: #e2e8f0;
   --input: #e2e8f0;
-  --ring: rgba(79, 70, 229, 0.3);
+  --ring: rgba(99, 102, 241, 0.3);
   --radius: 0.5rem;
   --font-sans: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
 }
 
+body.dark-theme,
 .dark-theme {
-  --primary: #6366f1;
-  --primary-light: #818cf8;
-  --primary-dark: #4f46e5;
-  --secondary: #10b981;
-  --secondary-light: #34d399;
-  --secondary-dark: #059669;
-  --accent: #f43f5e;
+  --primary: #818cf8;
+  --primary-light: #a5b4fc;
+  --primary-dark: #6366f1;
+  --secondary: #34d399;
+  --secondary-light: #6ee7b7;
+  --secondary-dark: #10b981;
+  --accent: #fb7185;
   --background: #0f172a;
   --foreground: #f8fafc;
   --card: #1e293b;
   --card-foreground: #f8fafc;
   --border: #334155;
   --input: #334155;
-  --ring: rgba(99, 102, 241, 0.3);
+  --ring: rgba(129, 140, 248, 0.3);
 }
 
 * {
@@ -48,6 +49,7 @@ body {
   background-color: var(--background);
   color: var(--foreground);
   line-height: 1.6;
+  transition: background-color 0.3s ease, color 0.3s ease;
 }
 
 /* Background Shapes */
@@ -65,6 +67,7 @@ body {
   position: absolute;
   border-radius: 50%;
   opacity: 0.05;
+  transition: background 0.3s ease;
 }
 
 .shape-1 {
@@ -124,24 +127,31 @@ body {
 
 .mock-interview-container {
   max-width: 1200px;
-  margin: 2rem auto;
-  padding: 2rem;
+  margin:auto;
+  padding:2rem;
   position: relative;
   z-index: 1;
+  transition: all 0.3s ease;
 }
 
 /* Header Styles */
 .interview-header {
-  text-align: center;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
   margin-bottom: 3rem;
   animation: fadeIn 0.8s ease-out;
+}
+
+.header-content {
+  display: flex;
+  flex-direction: column;
 }
 
 .logo {
   display: flex;
   align-items: center;
-  justify-content: center;
-  margin-bottom: 1rem;
+  margin-bottom: 0.5rem;
 }
 
 .logo-icon {
@@ -156,7 +166,7 @@ body {
   font-weight: 700;
   font-size: 1.2rem;
   margin-right: 0.75rem;
-  box-shadow: 0 4px 12px rgba(79, 70, 229, 0.2);
+  box-shadow: 0 4px 12px rgba(99, 102, 241, 0.2);
 }
 
 .interview-header h1 {
@@ -171,7 +181,128 @@ body {
   color: var(--foreground);
   opacity: 0.7;
   font-size: 1.1rem;
-  margin-top: 0.5rem;
+}
+
+.header-actions {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  position: relative;
+}
+
+.action-icon-button {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background-color: transparent;
+  border: 1px solid var(--border);
+  color: var(--foreground);
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.action-icon-button:hover {
+  background-color: rgba(99, 102, 241, 0.1);
+  border-color: var(--primary);
+  color: var(--primary);
+}
+
+.add-button {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.5rem 1rem;
+  background-color: var(--primary);
+  color: white;
+  border: none;
+  border-radius: var(--radius);
+  font-size: 0.9rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.add-button:hover {
+  background-color: var(--primary-dark);
+}
+
+/* Profile Dropdown */
+.profile-dropdown {
+  position: absolute;
+  top: 50px;
+  right: 0;
+  width: 280px;
+  background-color: var(--card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+  z-index: 100;
+  overflow: hidden;
+  animation: fadeIn 0.2s ease-out;
+}
+
+.profile-header {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  padding: 1rem;
+  border-bottom: 1px solid var(--border);
+}
+
+.profile-avatar {
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  background-color: var(--primary);
+  color: white;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 600;
+}
+
+.profile-info h4 {
+  font-size: 1rem;
+  font-weight: 600;
+  margin-bottom: 0.25rem;
+}
+
+.profile-info p {
+  font-size: 0.85rem;
+  color: var(--foreground);
+  opacity: 0.7;
+}
+
+.profile-menu {
+  padding: 0.5rem 0;
+}
+
+.profile-menu-item {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.75rem 1rem;
+  color: var(--foreground);
+  text-decoration: none;
+  font-size: 0.9rem;
+  transition: background-color 0.2s ease;
+  cursor: pointer;
+}
+
+.profile-menu-item:hover {
+  background-color: rgba(99, 102, 241, 0.05);
+}
+
+.profile-footer {
+  padding: 0.5rem 0;
+  border-top: 1px solid var(--border);
+}
+
+.text-red {
+  color: #ef4444;
 }
 
 /* Setup Section */
@@ -249,7 +380,7 @@ body {
 }
 
 .category-options button:hover {
-  background-color: rgba(79, 70, 229, 0.05);
+  background-color: rgba(99, 102, 241, 0.05);
   border-color: var(--primary-light);
 }
 
@@ -257,7 +388,7 @@ body {
   background-color: var(--primary);
   color: white;
   border-color: var(--primary);
-  box-shadow: 0 4px 12px rgba(79, 70, 229, 0.2);
+  box-shadow: 0 4px 12px rgba(99, 102, 241, 0.2);
 }
 
 .category-description {
@@ -265,7 +396,7 @@ body {
   align-items: flex-start;
   gap: 1rem;
   padding: 1.25rem;
-  background-color: rgba(79, 70, 229, 0.05);
+  background-color: rgba(99, 102, 241, 0.05);
   border-radius: var(--radius);
   margin-bottom: 2rem;
 }
@@ -310,13 +441,13 @@ body {
   cursor: pointer;
   transition: all 0.2s ease;
   width: 100%;
-  box-shadow: 0 4px 12px rgba(79, 70, 229, 0.2);
+  box-shadow: 0 4px 12px rgba(99, 102, 241, 0.2);
 }
 
 .start-button:hover {
   background: linear-gradient(135deg, var(--primary-dark), var(--primary));
   transform: translateY(-2px);
-  box-shadow: 0 6px 16px rgba(79, 70, 229, 0.3);
+  box-shadow: 0 6px 16px rgba(99, 102, 241, 0.3);
 }
 
 .start-button:active {
@@ -380,7 +511,7 @@ body {
 }
 
 .icon-button:hover {
-  background-color: rgba(79, 70, 229, 0.05);
+  background-color: rgba(99, 102, 241, 0.05);
   border-color: var(--primary-light);
 }
 
@@ -397,7 +528,7 @@ body {
 }
 
 .answer-item:hover {
-  background-color: rgba(79, 70, 229, 0.02);
+  background-color: rgba(99, 102, 241, 0.02);
 }
 
 .question-number {
@@ -406,7 +537,7 @@ body {
   justify-content: center;
   width: 36px;
   height: 36px;
-  background-color: rgba(79, 70, 229, 0.1);
+  background-color: rgba(99, 102, 241, 0.1);
   color: var(--primary);
   border-radius: 50%;
   font-weight: 600;
@@ -528,7 +659,7 @@ body {
   align-items: center;
   gap: 0.5rem;
   padding: 0.5rem 1rem;
-  background-color: rgba(79, 70, 229, 0.1);
+  background-color: rgba(99, 102, 241, 0.1);
   border-radius: 2rem;
   color: var(--primary);
   font-size: 0.9rem;
@@ -562,7 +693,7 @@ body {
 }
 
 .repeat-button:hover {
-  background-color: rgba(79, 70, 229, 0.05);
+  background-color: rgba(99, 102, 241, 0.05);
   border-color: var(--primary-light);
   color: var(--primary);
 }
@@ -662,7 +793,7 @@ body {
   padding: 1.25rem;
   border: 1px solid var(--border);
   border-radius: var(--radius);
-  background-color: rgba(255, 255, 255, 0.5);
+  background-color: var(--card);
   font-size: 1rem;
   line-height: 1.6;
   color: var(--foreground);
@@ -799,7 +930,7 @@ body {
   align-items: center;
   gap: 0.5rem;
   padding: 0.75rem 1.5rem;
-  background-color: rgba(79, 70, 229, 0.1);
+  background-color: rgba(99, 102, 241, 0.1);
   border: none;
   border-radius: var(--radius);
   color: var(--primary);
@@ -810,7 +941,7 @@ body {
 }
 
 .action-button:hover {
-  background-color: rgba(79, 70, 229, 0.2);
+  background-color: rgba(99, 102, 241, 0.2);
 }
 
 /* Footer */
@@ -839,6 +970,17 @@ body {
   .mock-interview-container {
     padding: 1.5rem;
     margin: 1rem;
+  }
+
+  .interview-header {
+    flex-direction: column;
+    gap: 1.5rem;
+    align-items: flex-start;
+  }
+
+  .header-actions {
+    width: 100%;
+    justify-content: flex-end;
   }
 
   .interview-header h1 {
@@ -876,5 +1018,23 @@ body {
 
   .current-question h2 {
     font-size: 1.25rem;
+  }
+
+  .profile-dropdown {
+    width: 250px;
+    right: -70px;
+  }
+
+  .profile-dropdown:after {
+    content: "";
+    position: absolute;
+    top: -8px;
+    right: 85px;
+    width: 16px;
+    height: 16px;
+    background-color: var(--card);
+    transform: rotate(45deg);
+    border-left: 1px solid var(--border);
+    border-top: 1px solid var(--border);
   }
 }

@@ -1,10 +1,23 @@
-"use client"
-
 import { useEffect, useState, useRef } from "react"
 import "./MockWindow.css"
-import { Mic, MicOff, Play, SkipForward, Repeat, Clock, CheckCircle, Briefcase, Code, Users, Volume2, Award, ChevronRight, BarChart, Download, RefreshCw } from 'lucide-react'
+import {
+  Mic,
+  MicOff,
+  Play,
+  Clock,
+  CheckCircle,
+  Briefcase,
+  Code,
+  Users,
+  Volume2,
+  Award,
+  ChevronRight,
+  BarChart,
+  Download,
+  RefreshCw,
+} from "lucide-react"
 
-const MockInterview = () => {
+const MockInterview = ({ darkMode }) => {
   const [voices, setVoices] = useState([])
   const [transcript, setTranscript] = useState("")
   const [isListening, setIsListening] = useState(false)
@@ -124,31 +137,26 @@ const MockInterview = () => {
   }
 
   const startInterview = () => {
-    setIsLoading(true)
-    
-    
+    setIsLoading(true);
     // Simulate loading for a smoother transition
+    setInterviewStarted(true)
+    setCurrentQuestion(0)
+    setAnswers([])
+    setFeedback("")
+    setIsLoading(false)
 
-      setInterviewStarted(true)
-      setCurrentQuestion(0)
-      setAnswers([])
-      setFeedback("")
-      setIsLoading(false)
-      
-      // Show random tip
-      const randomTip = interviewTips[Math.floor(Math.random() * interviewTips.length)]
-      setShowTip(randomTip)
-      
-      // Hide tip after 5 seconds
-      setShowAnimation(true)
-      setTimeout(() => {
-        setShowTip(false)
-        setShowAnimation(false)
-        // Speak the first question after tip disappears
-        speakText(interviewQuestions[selectedCategory][0])
-      }, 500)
-      
-    
+    // Show random tip
+    const randomTip = interviewTips[Math.floor(Math.random() * interviewTips.length)]
+    setShowTip(randomTip)
+
+    // Hide tip after 5 seconds
+    setShowAnimation(true)
+    setTimeout(() => {
+      setShowTip(false)
+      setShowAnimation(false)
+      // Speak the first question after tip disappears
+      speakText(interviewQuestions[selectedCategory][0])
+    }, 500)
   }
 
   const nextQuestion = () => {
@@ -164,11 +172,10 @@ const MockInterview = () => {
     }
 
     // Animate transition
-   
     setShowAnimation(true)
     setTimeout(() => {
       setShowAnimation(false)
-      
+
       // Move to next question
       if (currentQuestion < interviewQuestions[selectedCategory].length - 1) {
         const nextQuestionIndex = currentQuestion + 1
@@ -180,7 +187,6 @@ const MockInterview = () => {
         endInterview()
       }
     }, 500)
-
   }
 
   const endInterview = () => {
@@ -196,19 +202,19 @@ const MockInterview = () => {
   }
 
   const downloadResponses = () => {
-    const content = answers.map((item, index) => 
-      `Question ${index + 1}: ${item.question}\n\nYour Answer: ${item.answer}\n\n---\n\n`
-    ).join('');
-    
-    const blob = new Blob([content], { type: 'text/plain' });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = 'interview-responses.txt';
-    document.body.appendChild(a);
-    a.click();
-    document.body.removeChild(a);
-    URL.revokeObjectURL(url);
+    const content = answers
+      .map((item, index) => `Question ${index + 1}: ${item.question}\n\nYour Answer: ${item.answer}\n\n---\n\n`)
+      .join("")
+
+    const blob = new Blob([content], { type: "text/plain" })
+    const url = URL.createObjectURL(blob)
+    const a = document.createElement("a")
+    a.href = url
+    a.download = "interview-responses.txt"
+    document.body.appendChild(a)
+    a.click()
+    document.body.removeChild(a)
+    URL.revokeObjectURL(url)
   }
 
   // Init Speech Recognition
@@ -258,41 +264,27 @@ const MockInterview = () => {
   }, [])
 
   const getCategoryIcon = (category) => {
-    switch(category) {
-      case 'general':
-        return <Users size={20} />;
-      case 'technical':
-        return <Code size={20} />;
-      case 'behavioral':
-        return <Briefcase size={20} />;
+    switch (category) {
+      case "general":
+        return <Users size={20} />
+      case "technical":
+        return <Code size={20} />
+      case "behavioral":
+        return <Briefcase size={20} />
       default:
-        return <Users size={20} />;
+        return <Users size={20} />
     }
   }
 
   return (
     <div className="mock-interview-container">
-      <div className="background-shapes">
-        <div className="shape shape-1"></div>
-        <div className="shape shape-2"></div>
-        <div className="shape shape-3"></div>
-      </div>
-      
-      <header className="interview-header">
-        <div className="logo">
-          <div className="logo-icon">AI</div>
-          <h1>InterviewPro</h1>
-        </div>
-        <p>Advanced AI-powered interview practice platform</p>
-      </header>
-
       {!interviewStarted ? (
         <div className="setup-section">
           <div className="welcome-message">
             <h2>Welcome to Your Interview Session</h2>
             <p>Practice makes perfect. Choose an interview type below to begin your session.</p>
           </div>
-          
+
           <div className="category-selector">
             <h3>Select Interview Type</h3>
             <div className="category-options">
@@ -318,23 +310,24 @@ const MockInterview = () => {
                 <span>Behavioral</span>
               </button>
             </div>
-            
+
             <div className="category-description">
-              <div className="category-icon">
-                {getCategoryIcon(selectedCategory)}
-              </div>
+              <div className="category-icon">{getCategoryIcon(selectedCategory)}</div>
               <div className="category-text">
                 <h4>{selectedCategory.charAt(0).toUpperCase() + selectedCategory.slice(1)} Interview</h4>
                 <p>
-                  {selectedCategory === "general" && "Standard interview questions to assess your background, goals, and fit for the role."}
-                  {selectedCategory === "technical" && "Questions focused on programming concepts, problem-solving, and technical skills."}
-                  {selectedCategory === "behavioral" && "Questions about past experiences to evaluate your soft skills and work approach."}
+                  {selectedCategory === "general" &&
+                    "Standard interview questions to assess your background, goals, and fit for the role."}
+                  {selectedCategory === "technical" &&
+                    "Questions focused on programming concepts, problem-solving, and technical skills."}
+                  {selectedCategory === "behavioral" &&
+                    "Questions about past experiences to evaluate your soft skills and work approach."}
                 </p>
               </div>
             </div>
-            
-            <button 
-              className={`start-button ${isLoading ? 'loading' : ''}`} 
+
+            <button
+              className={`start-button ${isLoading ? "loading" : ""}`}
               onClick={startInterview}
               disabled={isLoading}
             >
@@ -361,7 +354,7 @@ const MockInterview = () => {
                   <span>Save</span>
                 </button>
               </div>
-              
+
               {answers.map((item, index) => (
                 <div key={index} className="answer-item">
                   <div className="question-number">Q{index + 1}</div>
@@ -375,7 +368,7 @@ const MockInterview = () => {
           )}
         </div>
       ) : (
-        <div className={`interview-section ${showAnimation ? 'animate-fade' : ''}`}>
+        <div className={`interview-section ${showAnimation ? "animate-fade" : ""}`}>
           {showTip && (
             <div className="interview-tip">
               <div className="tip-icon">
@@ -387,20 +380,20 @@ const MockInterview = () => {
               </div>
             </div>
           )}
-          
+
           <div className="question-display">
             <div className="question-header">
               <div className="question-counter">
                 <span className="counter-number">{currentQuestion + 1}</span>
                 <span className="counter-total">/ {interviewQuestions[selectedCategory].length}</span>
               </div>
-              
+
               <div className="question-category">
                 {getCategoryIcon(selectedCategory)}
                 <span>{selectedCategory.charAt(0).toUpperCase() + selectedCategory.slice(1)} Question</span>
               </div>
             </div>
-            
+
             <div className="current-question">
               <h2>{interviewQuestions[selectedCategory][currentQuestion]}</h2>
               <button className="repeat-button" onClick={repeatQuestion}>
@@ -415,10 +408,7 @@ const MockInterview = () => {
               <Clock size={16} />
               <span>{timeRemaining} seconds remaining</span>
               <div className="progress-bar">
-                <div 
-                  className="progress" 
-                  style={{ width: `${(timeRemaining / 60) * 100}%` }}
-                ></div>
+                <div className="progress" style={{ width: `${(timeRemaining / 60) * 100}%` }}></div>
               </div>
             </div>
 
@@ -433,7 +423,7 @@ const MockInterview = () => {
                   </div>
                 )}
               </div>
-              
+
               <div className="transcript-box">
                 {transcript || (
                   <span className="placeholder-text">
@@ -444,10 +434,7 @@ const MockInterview = () => {
             </div>
 
             <div className="controls">
-              <button 
-                className={`record-button ${isListening ? "recording" : ""}`} 
-                onClick={toggleListening}
-              >
+              <button className={`record-button ${isListening ? "recording" : ""}`} onClick={toggleListening}>
                 {isListening ? (
                   <>
                     <MicOff size={18} />
@@ -460,7 +447,7 @@ const MockInterview = () => {
                   </>
                 )}
               </button>
-              
+
               <button className="next-button" onClick={nextQuestion}>
                 <span>Next Question</span>
                 <ChevronRight size={18} />
@@ -476,20 +463,20 @@ const MockInterview = () => {
             <CheckCircle size={24} className="feedback-icon" />
             <h2>Interview Complete!</h2>
           </div>
-          
+
           <p>{feedback}</p>
-          
+
           <div className="feedback-actions">
             <button className="action-button" onClick={() => setInterviewStarted(false)}>
               <RefreshCw size={18} />
               <span>New Interview</span>
             </button>
-            
+
             <button className="action-button" onClick={downloadResponses}>
               <Download size={18} />
               <span>Save Responses</span>
             </button>
-            
+
             <button className="action-button">
               <BarChart size={18} />
               <span>View Analysis</span>
@@ -497,10 +484,6 @@ const MockInterview = () => {
           </div>
         </div>
       )}
-
-      <footer className="interview-footer">
-        <p>InterviewPro AI © 2024 | Advanced Interview Simulation Platform</p>
-      </footer>
     </div>
   )
 }
