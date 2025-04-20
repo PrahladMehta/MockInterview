@@ -1,4 +1,5 @@
 import { useEffect, useState, useRef } from "react"
+import { getMockQuestion } from "../api/mock"
 import "./MockWindow.css"
 import {
   Mic,
@@ -15,6 +16,8 @@ import {
   BarChart,
   Download,
   RefreshCw,
+  Layers,
+  Calendar,
 } from "lucide-react"
 
 const MockInterview = ({ darkMode }) => {
@@ -28,10 +31,14 @@ const MockInterview = ({ darkMode }) => {
   const [isLoading, setIsLoading] = useState(false)
   const [showAnimation, setShowAnimation] = useState(false)
   const recognitionRef = useRef(null)
-  const timerRef = useRef(null)
+  const timerRef = useRef(null) 
   const [timeRemaining, setTimeRemaining] = useState(60)
   const [selectedCategory, setSelectedCategory] = useState("general")
   const [showTip, setShowTip] = useState(false)
+  const [showRoleExperienceSelection, setShowRoleExperienceSelection] = useState(false)
+  const [selectedRole, setSelectedRole] = useState("")
+  const [selectedExperience, setSelectedExperience] = useState("")
+  const [interviewQuestion,setInterviewQuestions]=useState([]);
 
   // Sample interview questions by category
   const interviewQuestions = {
@@ -58,7 +65,49 @@ const MockInterview = ({ darkMode }) => {
     ],
   }
 
-  const interviewTips = [
+  // Role-specific questions
+  const roleSpecificQuestions = {
+    react: [
+      "Explain the React component lifecycle methods.",
+      "What are hooks in React and how do they work?",
+      "How would you optimize performance in a React application?",
+      "Explain the concept of context API in React.",
+      "What is the difference between controlled and uncontrolled components?",
+    ],
+    mern: [
+      "Explain how you would structure a MERN stack application.",
+      "How do you handle authentication in a MERN stack application?",
+      "What are the advantages of using MongoDB over a relational database?",
+      "Explain how you would implement real-time features in a MERN application.",
+      "How do you handle state management across your MERN application?",
+    ],
+    nodejs: [
+      "Explain the event-driven architecture in Node.js.",
+      "How does the Node.js module system work?",
+      "What are streams in Node.js and how would you use them?",
+      "Explain how you would handle errors in a Node.js application.",
+      "What are the differences between Node.js and traditional server-side languages?",
+    ],
+    python: [
+      "What are decorators in Python and how would you use them?",
+      "Explain the difference between lists and tuples in Python.",
+      "How does memory management work in Python?",
+      "What are generators in Python and when would you use them?",
+      "Explain the concept of duck typing in Python.",
+    ],
+    java: [
+      "Explain the principles of OOP in Java.",
+      "What is the difference between an interface and an abstract class?",
+      "How does garbage collection work in Java?",
+      "Explain the concept of multithreading in Java.",
+      "What are the new features introduced in Java 8 and later versions?",
+    ],
+  }
+
+  const experienceLevels = ["Fresher", "1 Year", "2 Years", "3 Years", "4 Years", "5+ Years"]
+  const roles = ["React", "MERN", "Node.js", "Python", "Java"]
+
+  const   interviewTips = [
     "Use the STAR method (Situation, Task, Action, Result) for behavioral questions.",
     "Maintain good eye contact during video interviews.",
     "Research the company before your interview.",
@@ -73,28 +122,29 @@ const MockInterview = ({ darkMode }) => {
   const loadVoices = () => {
     const synth = window.speechSynthesis
     let voiceList = synth.getVoices()
-
     if (voiceList.length) {
       setVoices(voiceList)
     } else {
       window.speechSynthesis.onvoiceschanged = () => {
         voiceList = synth.getVoices()
+        console.log(voiceList);
         setVoices(voiceList)
       }
     }
+
   }
 
   // Speak given text
   const speakText = (text) => {
     const synth = window.speechSynthesis
     const utterance = new SpeechSynthesisUtterance(text)
-    utterance.lang = "en-US"
+    utterance.lang = "en-GB"
     utterance.pitch = 1.0
-    utterance.rate = 1
+    utterance.rate = 0.9
     utterance.volume = 1
 
     if (voices.length > 0) {
-      const englishVoice = voices.find((voice) => voice.lang.includes("en-US"))
+      const englishVoice = voices.find((voice) => voice.lang.includes("en-GB"))
       utterance.voice = englishVoice || voices[0]
     }
 
@@ -102,21 +152,41 @@ const MockInterview = ({ darkMode }) => {
     synth.speak(utterance)
   }
 
-  // Start/stop speech recognition
-  const toggleListening = () => {
-    if (!recognitionRef.current) return
+  const getTechMockQuestion=()=>{
+    setIsLoading(true);
+   getMockQuestion({role:selectedRole,yearsOfExperience:selectedExperience}).then((data)=>{
+     console.log(data.data.data);
 
-    if (isListening) {
-      recognitionRef.current.stop()
-      setIsListening(false)
-      clearInterval(timerRef.current)
-    } else {
-      setTranscript("")
-      recognitionRef.current.start()
-      setIsListening(true)
-      startTimer()
-    }
-  }
+     setInterviewStarted(true)
+     setCurrentQuestion(0)
+     setAnswers([])
+     setFeedback("")
+     setShowRoleExperienceSelection(false)
+      // Show random tip
+    const randomTip = interviewTips[Math.floor(Math.random() * interviewTips.length)]
+    setShowTip(randomTip)
+    // Hide tip after 5 seconds
+    setShowAnimation(true)
+    setTimeout(() => {
+      setShowTip(false)
+      setShowAnimation(false)
+      // If technical interview with role selected, use role-specific questions
+      if (selectedCategory === "technical" && selectedRole.toLowerCase() in roleSpecificQuestions) {
+        speakText(roleSpecificQuestions[selectedRole.toLowerCase()][0])
+      } else {
+        // Otherwise use standard category questions
+        speakText(interviewQuestions[selectedCategory][0])
+      }
+    }, 500)
+     
+     
+   }).catch((error)=>{
+     console.log(error);
+   }).finally(()=>{
+    setIsLoading(false);
+   })
+}
+  
 
   const startTimer = () => {
     setTimeRemaining(60)
@@ -137,12 +207,23 @@ const MockInterview = ({ darkMode }) => {
   }
 
   const startInterview = () => {
-    setIsLoading(true);
+    if (selectedCategory === "technical" && !showRoleExperienceSelection) {
+      // Show role and experience selection for technical interviews
+      setShowRoleExperienceSelection(true)   
+      return
+    }
+    if(selectedCategory==="technical"){
+    
+      getTechMockQuestion();
+      return;
+    }
+
     // Simulate loading for a smoother transition
     setInterviewStarted(true)
     setCurrentQuestion(0)
     setAnswers([])
     setFeedback("")
+    setShowRoleExperienceSelection(false)
     setIsLoading(false)
 
     // Show random tip
@@ -154,9 +235,16 @@ const MockInterview = ({ darkMode }) => {
     setTimeout(() => {
       setShowTip(false)
       setShowAnimation(false)
-      // Speak the first question after tip disappears
-      speakText(interviewQuestions[selectedCategory][0])
+
+      // If technical interview with role selected, use role-specific questions
+      if (selectedCategory === "technical" && selectedRole.toLowerCase() in roleSpecificQuestions) {
+        speakText(roleSpecificQuestions[selectedRole.toLowerCase()][0])
+      } else {
+        // Otherwise use standard category questions
+        speakText(interviewQuestions[selectedCategory][0])
+      }
     }, 500)
+
   }
 
   const nextQuestion = () => {
@@ -165,7 +253,7 @@ const MockInterview = ({ darkMode }) => {
       setAnswers((prev) => [
         ...prev,
         {
-          question: interviewQuestions[selectedCategory][currentQuestion],
+          question: getCurrentQuestion(),
           answer: transcript,
         },
       ])
@@ -173,20 +261,50 @@ const MockInterview = ({ darkMode }) => {
 
     // Animate transition
     setShowAnimation(true)
+    startTimer();
     setTimeout(() => {
       setShowAnimation(false)
+      // Get the appropriate question set
+      const questionSet =
+        selectedCategory === "technical" && selectedRole.toLowerCase() in roleSpecificQuestions
+          ? roleSpecificQuestions[selectedRole.toLowerCase()]
+          : interviewQuestions[selectedCategory]
 
       // Move to next question
-      if (currentQuestion < interviewQuestions[selectedCategory].length - 1) {
+      if (currentQuestion < questionSet.length - 1) {
         const nextQuestionIndex = currentQuestion + 1
         setCurrentQuestion(nextQuestionIndex)
         setTranscript("")
-        speakText(interviewQuestions[selectedCategory][nextQuestionIndex])
+        speakText(questionSet[nextQuestionIndex])
       } else {
         // End of interview
         endInterview()
       }
     }, 500)
+  }
+
+
+  // Start/stop speech recognition
+  const toggleListening = () => {
+    if (!recognitionRef.current) return
+
+    if (isListening) {
+      recognitionRef.current.stop()
+      setIsListening(false)
+      clearInterval(timerRef.current)
+    } else {
+      setTranscript("")
+      recognitionRef.current.start()
+      setIsListening(true)
+      startTimer()
+    }
+  }
+
+  const getCurrentQuestion = () => {
+    if (selectedCategory === "technical" && selectedRole.toLowerCase() in roleSpecificQuestions) {
+      return roleSpecificQuestions[selectedRole.toLowerCase()][currentQuestion]
+    }
+    return interviewQuestions[selectedCategory][currentQuestion]
   }
 
   const endInterview = () => {
@@ -198,7 +316,7 @@ const MockInterview = ({ darkMode }) => {
   }
 
   const repeatQuestion = () => {
-    speakText(interviewQuestions[selectedCategory][currentQuestion])
+    speakText(getCurrentQuestion())
   }
 
   const downloadResponses = () => {
@@ -229,16 +347,16 @@ const MockInterview = ({ darkMode }) => {
     }
 
     const recognition = new SpeechRecognition()
-    recognition.lang = "en-US"
+    recognition.lang = "en-GB"
     recognition.interimResults = true
     recognition.continuous = true
 
     recognition.onresult = (event) => {
       let fullTranscript = ""
-      for (let i = event.resultIndex; i < event.results.length; ++i) {
+      for (let i = 0; i < event.results.length; ++i) {
         fullTranscript += event.results[i][0].transcript
       }
-      setTranscript(fullTranscript)
+      setTranscript(fullTranscript);
     }
 
     recognition.onerror = (event) => {
@@ -285,65 +403,146 @@ const MockInterview = ({ darkMode }) => {
             <p>Practice makes perfect. Choose an interview type below to begin your session.</p>
           </div>
 
-          <div className="category-selector">
-            <h3>Select Interview Type</h3>
-            <div className="category-options">
+          {!showRoleExperienceSelection ? (
+            <div className="category-selector">
+              <h3>Select Interview Type</h3>
+              <div className="category-options">
+                <button
+                  className={selectedCategory === "general" ? "active" : ""}
+                  onClick={() => setSelectedCategory("general")}
+                >
+                  <Users size={20} />
+                  <span>General</span>
+                </button>
+                <button
+                  className={selectedCategory === "technical" ? "active" : ""}
+                  onClick={() => setSelectedCategory("technical")}
+                >
+                  <Code size={20} />
+                  <span>Technical</span>
+                </button>
+                <button
+                  className={selectedCategory === "behavioral" ? "active" : ""}
+                  onClick={() => setSelectedCategory("behavioral")}
+                >
+                  <Briefcase size={20} />
+                  <span>Behavioral</span>
+                </button>
+              </div>
+
+              <div className="category-description">
+                <div className="category-icon">{getCategoryIcon(selectedCategory)}</div>
+                <div className="category-text">
+                  <h4>{selectedCategory.charAt(0).toUpperCase() + selectedCategory.slice(1)} Interview</h4>
+                  <p>
+                    {selectedCategory === "general" &&
+                      "Standard interview questions to assess your background, goals, and fit for the role."}
+                    {selectedCategory === "technical" &&
+                      "Questions focused on programming concepts, problem-solving, and technical skills."}
+                    {selectedCategory === "behavioral" &&
+                      "Questions about past experiences to evaluate your soft skills and work approach."}
+                  </p>
+                </div>
+              </div>
+
               <button
-                className={selectedCategory === "general" ? "active" : ""}
-                onClick={() => setSelectedCategory("general")}
+                className={`start-button ${isLoading ? "loading" : ""}`}
+                onClick={startInterview}
+                disabled={isLoading}
               >
-                <Users size={20} />
-                <span>General</span>
-              </button>
-              <button
-                className={selectedCategory === "technical" ? "active" : ""}
-                onClick={() => setSelectedCategory("technical")}
-              >
-                <Code size={20} />
-                <span>Technical</span>
-              </button>
-              <button
-                className={selectedCategory === "behavioral" ? "active" : ""}
-                onClick={() => setSelectedCategory("behavioral")}
-              >
-                <Briefcase size={20} />
-                <span>Behavioral</span>
+                {isLoading ? (
+                  <>
+                    <div className="spinner"></div>
+                    <span>Preparing Interview...</span>
+                  </>
+                ) : (
+                  <>
+                    <Play size={20} />
+                    <span>Start Interview</span>
+                  </>
+                )}
               </button>
             </div>
+          ) : (
+            <div className="category-selector role-experience-selector">
+              <h3>Technical Interview Setup</h3>
 
-            <div className="category-description">
-              <div className="category-icon">{getCategoryIcon(selectedCategory)}</div>
-              <div className="category-text">
-                <h4>{selectedCategory.charAt(0).toUpperCase() + selectedCategory.slice(1)} Interview</h4>
-                <p>
-                  {selectedCategory === "general" &&
-                    "Standard interview questions to assess your background, goals, and fit for the role."}
-                  {selectedCategory === "technical" &&
-                    "Questions focused on programming concepts, problem-solving, and technical skills."}
-                  {selectedCategory === "behavioral" &&
-                    "Questions about past experiences to evaluate your soft skills and work approach."}
-                </p>
+              <div className="selection-container">
+                <div className="selection-group">
+                  <div className="selection-header">
+                    <Layers size={20} />
+                    <h4>Select Your Role</h4>
+                  </div>
+                  <div className="selection-options">
+                    {roles.map((role) => (
+                      <button
+                        key={role}
+                        className={selectedRole === role ? "active" : ""}
+                        onClick={() => setSelectedRole(role)}
+                      >
+                        {role}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
+                <div className="selection-group">
+                  <div className="selection-header">
+                    <Calendar size={20} />
+                    <h4>Years of Experience</h4>
+                  </div>
+                  <div className="selection-options">
+                    {experienceLevels.map((level) => (
+                      <button
+                        key={level}
+                        className={selectedExperience === level ? "active" : ""}
+                        onClick={() => setSelectedExperience(level)}
+                      >
+                        {level}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              </div>
+
+              <div className="selection-summary">
+                {selectedRole && selectedExperience && (
+                  <div className="summary-content">
+                    <p>
+                      You've selected a <strong>{selectedRole}</strong> role with <strong>{selectedExperience}</strong>{" "}
+                      of experience.
+                    </p>
+                    <p className="summary-note">Your interview questions will be tailored to this experience level.</p>
+                  </div>
+                )}
+              </div>
+
+              <div className="selection-actions">
+                <button className="secondary-button" onClick={() => setShowRoleExperienceSelection(false)}>
+                  <ChevronRight className="rotate-180" size={20} />
+                  <span>Back</span>
+                </button>
+
+                <button
+                  className={`start-button ${isLoading ? "loading" : ""}`}
+                  onClick={startInterview}
+                  disabled={isLoading || !selectedRole || !selectedExperience}
+                >
+                  {isLoading ? (
+                    <>
+                      <div className="spinner"></div>
+                      <span>Preparing Interview...</span>
+                    </>
+                  ) : (
+                    <>
+                      <Play size={20} />
+                      <span>Start Interview</span>
+                    </>
+                  )}
+                </button>
               </div>
             </div>
-
-            <button
-              className={`start-button ${isLoading ? "loading" : ""}`}
-              onClick={startInterview}
-              disabled={isLoading}
-            >
-              {isLoading ? (
-                <>
-                  <div className="spinner"></div>
-                  <span>Preparing Interview...</span>
-                </>
-              ) : (
-                <>
-                  <Play size={20} />
-                  <span>Start Interview</span>
-                </>
-              )}
-            </button>
-          </div>
+          )}
 
           {answers.length > 0 && (
             <div className="previous-answers">
@@ -385,17 +584,27 @@ const MockInterview = ({ darkMode }) => {
             <div className="question-header">
               <div className="question-counter">
                 <span className="counter-number">{currentQuestion + 1}</span>
-                <span className="counter-total">/ {interviewQuestions[selectedCategory].length}</span>
+                <span className="counter-total">
+                  /{" "}
+                  {selectedCategory === "technical" && selectedRole.toLowerCase() in roleSpecificQuestions
+                    ? roleSpecificQuestions[selectedRole.toLowerCase()].length
+                    : interviewQuestions[selectedCategory].length}
+                </span>
               </div>
 
               <div className="question-category">
                 {getCategoryIcon(selectedCategory)}
-                <span>{selectedCategory.charAt(0).toUpperCase() + selectedCategory.slice(1)} Question</span>
+                <span>
+                  {selectedCategory === "technical" && selectedRole
+                    ? `${selectedRole} (${selectedExperience})`
+                    : `${selectedCategory.charAt(0).toUpperCase() + selectedCategory.slice(1)}`}{" "}
+                  Question
+                </span>
               </div>
             </div>
 
             <div className="current-question">
-              <h2>{interviewQuestions[selectedCategory][currentQuestion]}</h2>
+              <h2>{getCurrentQuestion()}</h2>
               <button className="repeat-button" onClick={repeatQuestion}>
                 <Volume2 size={16} />
                 <span>Repeat Question</span>
