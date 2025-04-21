@@ -1,10 +1,13 @@
 "use client"
 
 import { useState } from "react"
-import { Link } from "react-router-dom"
+import { Link,useNavigate } from "react-router-dom"
 import { Mail, Lock, LogIn, User, ArrowRight } from "lucide-react"
+import { logInApi } from "../api/auth";
 
-const Login = ({ darkMode }) => {
+const Login = () => {
+
+  const Navigate=useNavigate();
   const [loginData, setLoginData] = useState({
     email: "",
     password: "",
@@ -21,10 +24,16 @@ const Login = ({ darkMode }) => {
 
   const handleSubmit = (e) => {
     e.preventDefault()
-    // Here you would typically handle authentication
-    console.log("Login attempt with:", loginData)
-    // For now, just redirect to home page
-    window.location.href = "/"
+    if(loginData.email.length===0||loginData.password.length===0){
+           return ;
+    }
+    logInApi(loginData).then((data)=>{
+      console.log(data.data.data);
+      localStorage.setItem("mock_interview_token",data.data.data.token);
+    Navigate("/");
+    }).catch((error)=>{
+      console.log(error);
+    });
   }
 
   return (

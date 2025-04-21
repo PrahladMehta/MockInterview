@@ -3,8 +3,11 @@
 import { useState } from "react"
 import { Link } from "react-router-dom"
 import { Mail, Lock, User, ArrowRight, CheckCircle } from "lucide-react"
+import { useNavigate} from "react-router-dom"
+import { signUp } from "../api/auth"
 
-const Signup = ({ darkMode }) => {
+const Signup = () => {
+  const Navigate=useNavigate();
   const [signupData, setSignupData] = useState({
     name: "",
     email: "",
@@ -54,10 +57,20 @@ const Signup = ({ darkMode }) => {
       return
     }
 
+    signUp(signupData).then((data)=>{
+      // localStorage.setItem("token_mock_interview",data.data.data.token);
+      console.log(data);
+
+      if(data.data.success){
+          Navigate("/login");
+      }
+    
+    }).catch((error)=>console.log(error));
+
     // Here you would typically handle user registration
     console.log("Signup attempt with:", signupData)
     // For now, just redirect to home page
-    window.location.href = "/"
+    // window.location.href = "/"
   }
 
   return (

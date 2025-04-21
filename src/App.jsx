@@ -45,8 +45,8 @@ function App() {
         </div>
 
         <Routes>
-          <Route path="/login" element={<Login darkMode={darkMode} />} />
-          <Route path="/signup" element={<Signup darkMode={darkMode} />} />
+          <Route path="/login" element={<Login />} />
+          <Route path="/signup" element={<Signup  />} />
           <Route
             path="*"
             element={

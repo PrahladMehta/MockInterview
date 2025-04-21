@@ -38,7 +38,7 @@ const MockInterview = ({ darkMode }) => {
   const [showRoleExperienceSelection, setShowRoleExperienceSelection] = useState(false)
   const [selectedRole, setSelectedRole] = useState("")
   const [selectedExperience, setSelectedExperience] = useState("")
-  const [interviewQuestion,setInterviewQuestions]=useState([]);
+  const [selectedInterviewQuestion,setSelectedInterviewQuestion]=useState([]);
 
   // Sample interview questions by category
   const interviewQuestions = {
@@ -157,6 +157,8 @@ const MockInterview = ({ darkMode }) => {
    getMockQuestion({role:selectedRole,yearsOfExperience:selectedExperience}).then((data)=>{
      console.log(data.data.data);
 
+     setSelectedInterviewQuestion(data.data.data);
+
      setInterviewStarted(true)
      setCurrentQuestion(0)
      setAnswers([])
@@ -170,13 +172,9 @@ const MockInterview = ({ darkMode }) => {
     setTimeout(() => {
       setShowTip(false)
       setShowAnimation(false)
-      // If technical interview with role selected, use role-specific questions
-      if (selectedCategory === "technical" && selectedRole.toLowerCase() in roleSpecificQuestions) {
-        speakText(roleSpecificQuestions[selectedRole.toLowerCase()][0])
-      } else {
-        // Otherwise use standard category questions
-        speakText(interviewQuestions[selectedCategory][0])
-      }
+      speakText(selectedInterviewQuestion[0]);
+  
+    
     }, 500)
      
      
@@ -217,7 +215,14 @@ const MockInterview = ({ darkMode }) => {
       getTechMockQuestion();
       return;
     }
+   
+    if(selectedCategory==="general"){
+       setSelectedInterviewQuestion(interviewQuestions["general"]);
+    }
 
+    if(selectedCategory==="behavioral"){
+      setSelectedInterviewQuestion(interviewQuestions["behavioral"]);
+    }
     // Simulate loading for a smoother transition
     setInterviewStarted(true)
     setCurrentQuestion(0)
@@ -235,14 +240,7 @@ const MockInterview = ({ darkMode }) => {
     setTimeout(() => {
       setShowTip(false)
       setShowAnimation(false)
-
-      // If technical interview with role selected, use role-specific questions
-      if (selectedCategory === "technical" && selectedRole.toLowerCase() in roleSpecificQuestions) {
-        speakText(roleSpecificQuestions[selectedRole.toLowerCase()][0])
-      } else {
-        // Otherwise use standard category questions
-        speakText(interviewQuestions[selectedCategory][0])
-      }
+      speakText(setSelectedInterviewQuestion[currentQuestion]);    
     }, 500)
 
   }
@@ -265,17 +263,17 @@ const MockInterview = ({ darkMode }) => {
     setTimeout(() => {
       setShowAnimation(false)
       // Get the appropriate question set
-      const questionSet =
-        selectedCategory === "technical" && selectedRole.toLowerCase() in roleSpecificQuestions
-          ? roleSpecificQuestions[selectedRole.toLowerCase()]
-          : interviewQuestions[selectedCategory]
+      // const questionSet =
+      //   selectedCategory === "technical" && selectedRole.toLowerCase() in roleSpecificQuestions
+      //     ? roleSpecificQuestions[selectedRole.toLowerCase()]
+      //     : interviewQuestions[selectedCategory]
 
       // Move to next question
-      if (currentQuestion < questionSet.length - 1) {
+      if (currentQuestion < selectedInterviewQuestion.length - 1) {
         const nextQuestionIndex = currentQuestion + 1
         setCurrentQuestion(nextQuestionIndex)
         setTranscript("")
-        speakText(questionSet[nextQuestionIndex])
+        speakText(selectedInterviewQuestion[nextQuestionIndex]);
       } else {
         // End of interview
         endInterview()
@@ -301,10 +299,7 @@ const MockInterview = ({ darkMode }) => {
   }
 
   const getCurrentQuestion = () => {
-    if (selectedCategory === "technical" && selectedRole.toLowerCase() in roleSpecificQuestions) {
-      return roleSpecificQuestions[selectedRole.toLowerCase()][currentQuestion]
-    }
-    return interviewQuestions[selectedCategory][currentQuestion]
+    return selectedInterviewQuestion[currentQuestion];
   }
 
   const endInterview = () => {
@@ -586,9 +581,7 @@ const MockInterview = ({ darkMode }) => {
                 <span className="counter-number">{currentQuestion + 1}</span>
                 <span className="counter-total">
                   /{" "}
-                  {selectedCategory === "technical" && selectedRole.toLowerCase() in roleSpecificQuestions
-                    ? roleSpecificQuestions[selectedRole.toLowerCase()].length
-                    : interviewQuestions[selectedCategory].length}
+                  {selectedInterviewQuestion.length}
                 </span>
               </div>
 
