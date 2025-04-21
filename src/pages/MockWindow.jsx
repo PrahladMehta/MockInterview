@@ -20,7 +20,7 @@ import {
   Calendar,
 } from "lucide-react"
 
-const MockInterview = ({ darkMode }) => {
+const MockInterview = () => {
   const [voices, setVoices] = useState([])
   const [transcript, setTranscript] = useState("")
   const [isListening, setIsListening] = useState(false)
