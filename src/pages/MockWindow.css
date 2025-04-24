@@ -242,7 +242,7 @@
 }
 
 .profile-footer {
-  padding: 0.5rem 0;
+  padding: 1rem 1.5rem ;
   border-top: 1px solid var(--border);
 }
 
@@ -939,6 +939,17 @@
   transform: translateX(2px);
 }
 
+.next-button.submit-button {
+  background: linear-gradient(135deg, #08945e, #07c689);
+  box-shadow: 0 4px 12px rgba(5, 154, 104, 0.2);
+}
+
+.next-button.submit-button:hover {
+  background: linear-gradient(135deg,#08945e, #07c689);
+  box-shadow: 0 4px 16px rgba(16, 185, 129, 0.3);
+  transform: translateY(-2px);
+}
+
 /* Feedback Section */
 .feedback-section {
   background-color: var(--card);
@@ -1025,6 +1036,132 @@
     opacity: 1;
     transform: translateY(0);
   }
+}
+
+/* Modal Styles */
+.modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  animation: fadeIn 0.2s ease-out;
+}
+
+.modal-content {
+  background-color: white;
+  border-radius: 12px;
+  padding: 1.5rem;
+  width: 90%;
+  max-width: 500px;
+  box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+  position: relative;
+}
+
+.modal-header {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  margin-bottom: 1rem;
+}
+
+.modal-header h3 {
+  font-size: 1.25rem;
+  font-weight: 600;
+  color: #1f2937;
+  margin: 0;
+}
+
+.modal-icon {
+  color: #f59e0b;
+}
+
+.modal-close {
+  position: absolute;
+  top: 1rem;
+  right: 1rem;
+  background: none;
+  border: none;
+  color: #6b7280;
+  cursor: pointer;
+  padding: 0.5rem;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s ease;
+}
+
+.modal-close:hover {
+  background-color: #f3f4f6;
+  color: #1f2937;
+}
+
+.modal-content p {
+  color: #4b5563;
+  margin-bottom: 1.5rem;
+  font-size: 0.95rem;
+  line-height: 1.5;
+}
+
+.modal-actions {
+  display: flex;
+  gap: 1rem;
+  justify-content: flex-end;
+}
+
+.modal-cancel {
+  padding: 0.75rem 1.5rem;
+  background-color: #f3f4f6;
+  border: none;
+  border-radius: 6px;
+  color: #4b5563;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.modal-cancel:hover {
+  background-color: #e5e7eb;
+}
+
+.modal-submit {
+  padding: 0.75rem 1.5rem;
+  background: linear-gradient(135deg, #00FA9A, #3ae4a3);
+  border: none;
+  border-radius: 6px;
+  color: white;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.modal-submit:hover {
+  background: linear-gradient(135deg, #00FA9A, #3ae4a3);
+  transform: translateY(-1px);
+}
+
+.modal-submit.submitting {
+  opacity: 0.8;
+  cursor: not-allowed;
+  transform: none;
+}
+
+.modal-submit .spinner {
+  width: 18px;
+  height: 18px;
+  border: 2px solid rgba(255, 255, 255, 0.3);
+  border-radius: 50%;
+  border-top-color: white;
+  animation: spin 1s linear infinite;
 }
 
 /* Responsive Design */

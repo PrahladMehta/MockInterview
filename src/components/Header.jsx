@@ -75,7 +75,7 @@ const Header = () => {
           {showProfileMenu && isLoggedIn && (
             <div className="profile-dropdown">
               <div className="profile-header">
-                <div className="profile-avatar">JP</div>
+                <img className="profile-avatar" src="https://res.cloudinary.com/dflwei6ak/image/upload/v1739623342/1231474_g0igus.png"/>
                 <div className="profile-info">
                   <h4>John Doe</h4>
                   <p>john.doe@example.com</p>
@@ -97,7 +97,7 @@ const Header = () => {
               </div>
               <div className="profile-footer">
                 <button
-                  className="profile-menu-item text-red"
+                  className="add-button"
                   onClick={() => {
                     logOut()
                   }}

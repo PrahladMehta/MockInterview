@@ -1,6 +1,6 @@
-import { useEffect, useState, useRef } from "react"
-import { getMockQuestion } from "../api/mock"
-import "./MockWindow.css"
+import { useEffect, useState, useRef } from "react";
+import { getMockQuestion,createMockResult } from "../api/mock";
+import "./MockWindow.css";
 import {
   Mic,
   MicOff,
@@ -18,29 +18,33 @@ import {
   RefreshCw,
   Layers,
   Calendar,
-} from "lucide-react"
+  Send,
+  X,
+  AlertCircle
+} from "lucide-react";
 
 const MockInterview = () => {
-  const [voices, setVoices] = useState([])
-  const [transcript, setTranscript] = useState("")
-  const [isListening, setIsListening] = useState(false)
-  const [currentQuestion, setCurrentQuestion] = useState(0)
-  const [interviewStarted, setInterviewStarted] = useState(false)
-  const [feedback, setFeedback] = useState("")
-  const [answers, setAnswers] = useState([])
-  const [isLoading, setIsLoading] = useState(false)
-  const [showAnimation, setShowAnimation] = useState(false)
-  const recognitionRef = useRef(null)
-  const timerRef = useRef(null) 
-  const [timeRemaining, setTimeRemaining] = useState(60)
-  const [selectedCategory, setSelectedCategory] = useState("general")
-  const [showTip, setShowTip] = useState(false)
-  const [showRoleExperienceSelection, setShowRoleExperienceSelection] = useState(false)
-  const [selectedRole, setSelectedRole] = useState("")
-  const [selectedExperience, setSelectedExperience] = useState("")
-  const [selectedInterviewQuestion,setSelectedInterviewQuestion]=useState([]);
+  const [voices, setVoices] = useState([]);
+  const [transcript, setTranscript] = useState("");
+  const [isListening, setIsListening] = useState(false);
+  const [currentQuestion, setCurrentQuestion] = useState(0);
+  const [interviewStarted, setInterviewStarted] = useState(false);
+  const [feedback, setFeedback] = useState("");
+  const [answers, setAnswers] = useState([]);
+  const [isLoading, setIsLoading] = useState(false);
+  const [showAnimation, setShowAnimation] = useState(false);
+  const [showConfirmModal, setShowConfirmModal] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const recognitionRef = useRef(null);
+  const timerRef = useRef(null);
+  const [timeRemaining, setTimeRemaining] = useState(60);
+  const [selectedCategory, setSelectedCategory] = useState("general");
+  const [showTip, setShowTip] = useState(false);
+  const [showRoleExperienceSelection, setShowRoleExperienceSelection] = useState(false);
+  const [selectedRole, setSelectedRole] = useState("");
+  const [selectedExperience, setSelectedExperience] = useState("");
+  const [selectedInterviewQuestion, setSelectedInterviewQuestion] = useState([]);
 
-  // Sample interview questions by category
   const interviewQuestions = {
     general: [
       "Tell me about yourself and your background.",
@@ -49,13 +53,6 @@ const MockInterview = () => {
       "Why are you interested in working for our company specifically?",
       "Where do you see yourself professionally in 5 years?",
     ],
-    technical: [
-      "Explain the difference between var, let, and const in JavaScript.",
-      "What is the virtual DOM in React and why is it important?",
-      "Explain the concept of closures in JavaScript with an example.",
-      "What is the difference between props and state in React components?",
-      "Describe the event loop in JavaScript and how it handles asynchronous operations.",
-    ],
     behavioral: [
       "Describe a time when you faced a challenging situation at work and how you resolved it.",
       "Tell me about a time you had to work with a difficult team member and how you handled it.",
@@ -63,51 +60,12 @@ const MockInterview = () => {
       "Describe a situation where you had to meet a tight deadline and the steps you took.",
       "Tell me about a time you went above and beyond what was required for a project.",
     ],
-  }
+  };
 
-  // Role-specific questions
-  const roleSpecificQuestions = {
-    react: [
-      "Explain the React component lifecycle methods.",
-      "What are hooks in React and how do they work?",
-      "How would you optimize performance in a React application?",
-      "Explain the concept of context API in React.",
-      "What is the difference between controlled and uncontrolled components?",
-    ],
-    mern: [
-      "Explain how you would structure a MERN stack application.",
-      "How do you handle authentication in a MERN stack application?",
-      "What are the advantages of using MongoDB over a relational database?",
-      "Explain how you would implement real-time features in a MERN application.",
-      "How do you handle state management across your MERN application?",
-    ],
-    nodejs: [
-      "Explain the event-driven architecture in Node.js.",
-      "How does the Node.js module system work?",
-      "What are streams in Node.js and how would you use them?",
-      "Explain how you would handle errors in a Node.js application.",
-      "What are the differences between Node.js and traditional server-side languages?",
-    ],
-    python: [
-      "What are decorators in Python and how would you use them?",
-      "Explain the difference between lists and tuples in Python.",
-      "How does memory management work in Python?",
-      "What are generators in Python and when would you use them?",
-      "Explain the concept of duck typing in Python.",
-    ],
-    java: [
-      "Explain the principles of OOP in Java.",
-      "What is the difference between an interface and an abstract class?",
-      "How does garbage collection work in Java?",
-      "Explain the concept of multithreading in Java.",
-      "What are the new features introduced in Java 8 and later versions?",
-    ],
-  }
+  const experienceLevels = ["Fresher", "1 Year", "2 Years", "3 Years", "4 Years", "5+ Years"];
+  const roles = ["React", "MERN", "Node.js", "Python", "Java", "System Design"];
 
-  const experienceLevels = ["Fresher", "1 Year", "2 Years", "3 Years", "4 Years", "5+ Years"]
-  const roles = ["React", "MERN", "Node.js", "Python", "Java"]
-
-  const   interviewTips = [
+  const interviewTips = [
     "Use the STAR method (Situation, Task, Action, Result) for behavioral questions.",
     "Maintain good eye contact during video interviews.",
     "Research the company before your interview.",
@@ -116,281 +74,325 @@ const MockInterview = () => {
     "Focus on specific examples rather than general statements.",
     "Be concise and stay on topic with your answers.",
     "Show enthusiasm and positive energy.",
-  ]
+  ];
 
-  // Load available TTS voices
   const loadVoices = () => {
-    const synth = window.speechSynthesis
-    let voiceList = synth.getVoices()
+    const synth = window.speechSynthesis;
+    let voiceList = synth.getVoices();
     if (voiceList.length) {
-      setVoices(voiceList)
+      setVoices(voiceList);
     } else {
       window.speechSynthesis.onvoiceschanged = () => {
-        voiceList = synth.getVoices()
+        voiceList = synth.getVoices();
         console.log(voiceList);
-        setVoices(voiceList)
-      }
+        setVoices(voiceList);
+      };
     }
+  };
 
-  }
-
-  // Speak given text
   const speakText = (text) => {
-    const synth = window.speechSynthesis
-    const utterance = new SpeechSynthesisUtterance(text)
-    utterance.lang = "en-GB"
-    utterance.pitch = 1.0
-    utterance.rate = 0.9
-    utterance.volume = 1
+    const synth = window.speechSynthesis;
+    const utterance = new SpeechSynthesisUtterance(text);
+    utterance.lang = "en-GB";
+    utterance.pitch = 1.0;
+    utterance.rate = 0.9;
+    utterance.volume = 1;
 
     if (voices.length > 0) {
-      const englishVoice = voices.find((voice) => voice.lang.includes("en-GB"))
-      utterance.voice = englishVoice || voices[0]
+      const englishVoice = voices.find((voice) => voice.lang.includes("en-GB"));
+      utterance.voice = englishVoice || voices[0];
     }
 
-    synth.cancel()
-    synth.speak(utterance)
-  }
+    synth.cancel();
+    synth.speak(utterance);
+  };
 
-  const getTechMockQuestion=()=>{
+  const getTechMockQuestion = () => {
     setIsLoading(true);
-   getMockQuestion({role:selectedRole,yearsOfExperience:selectedExperience}).then((data)=>{
-     console.log(data.data.data);
+    getMockQuestion({ role: selectedRole, yearsOfExperience: selectedExperience })
+      .then((data) => {
+        console.log(data.data.data);
 
-     setSelectedInterviewQuestion(data.data.data);
+        setSelectedInterviewQuestion(data.data.data);
 
-     setInterviewStarted(true)
-     setCurrentQuestion(0)
-     setAnswers([])
-     setFeedback("")
-     setShowRoleExperienceSelection(false)
-      // Show random tip
-    const randomTip = interviewTips[Math.floor(Math.random() * interviewTips.length)]
-    setShowTip(randomTip)
-    // Hide tip after 5 seconds
-    setShowAnimation(true)
-    setTimeout(() => {
-      setShowTip(false)
-      setShowAnimation(false)
-      speakText(selectedInterviewQuestion[0]);
-  
-    
-    }, 500)
-     
-     
-   }).catch((error)=>{
-     console.log(error);
-   }).finally(()=>{
-    setIsLoading(false);
-   })
-}
-  
+        setInterviewStarted(true);
+        setCurrentQuestion(0);
+        setAnswers([]);
+        setFeedback("");
+        setShowRoleExperienceSelection(false);
+        const randomTip = interviewTips[Math.floor(Math.random() * interviewTips.length)];
+        setShowTip(randomTip);
+        setShowAnimation(true);
+        setTimeout(() => {
+          setShowTip(false);
+          setShowAnimation(false);
+          speakText(selectedInterviewQuestion[0]);
+        }, 500);
+      })
+      .catch((error) => {
+        console.log(error);
+      })
+      .finally(() => {
+        setIsLoading(false);
+      });
+  };
 
   const startTimer = () => {
-    setTimeRemaining(60)
-    clearInterval(timerRef.current)
+    setTimeRemaining(60);
+    clearInterval(timerRef.current);
     timerRef.current = setInterval(() => {
       setTimeRemaining((prev) => {
         if (prev <= 1) {
-          clearInterval(timerRef.current)
+          clearInterval(timerRef.current);
           if (isListening) {
-            recognitionRef.current.stop()
-            setIsListening(false)
+            recognitionRef.current.stop();
+            setIsListening(false);
           }
-          return 0
+          return 0;
         }
-        return prev - 1
-      })
-    }, 1000)
-  }
+        return prev - 1;
+      });
+    }, 1000);
+  };
 
   const startInterview = () => {
     if (selectedCategory === "technical" && !showRoleExperienceSelection) {
-      // Show role and experience selection for technical interviews
-      setShowRoleExperienceSelection(true)   
-      return
+      setShowRoleExperienceSelection(true);
+      return;
     }
-    if(selectedCategory==="technical"){
-    
+    if (selectedCategory === "technical") {
       getTechMockQuestion();
       return;
     }
-   
-    if(selectedCategory==="general"){
-       setSelectedInterviewQuestion(interviewQuestions["general"]);
+
+    if (selectedCategory === "general") {
+      setSelectedInterviewQuestion(interviewQuestions["general"]);
     }
 
-    if(selectedCategory==="behavioral"){
+    if (selectedCategory === "behavioral") {
       setSelectedInterviewQuestion(interviewQuestions["behavioral"]);
     }
-    // Simulate loading for a smoother transition
-    setInterviewStarted(true)
-    setCurrentQuestion(0)
-    setAnswers([])
-    setFeedback("")
-    setShowRoleExperienceSelection(false)
-    setIsLoading(false)
 
-    // Show random tip
-    const randomTip = interviewTips[Math.floor(Math.random() * interviewTips.length)]
-    setShowTip(randomTip)
+    setInterviewStarted(true);
+    setCurrentQuestion(0);
+    setAnswers([]);
+    setFeedback("");
+    setShowRoleExperienceSelection(false);
+    setIsLoading(false);
 
-    // Hide tip after 5 seconds
-    setShowAnimation(true)
+    const randomTip = interviewTips[Math.floor(Math.random() * interviewTips.length)];
+    setShowTip(randomTip);
+
+    setShowAnimation(true);
     setTimeout(() => {
-      setShowTip(false)
-      setShowAnimation(false)
-      speakText(setSelectedInterviewQuestion[currentQuestion]);    
-    }, 500)
+      setShowTip(false);
+      setShowAnimation(false);
+      speakText(selectedInterviewQuestion[0]);
+    }, 500);
+  };
 
-  }
+  const handleSubmit = async () => {
+    setIsSubmitting(true);
+    
+    const finalResponse = [
+      ...answers,
+      {
+        question: getCurrentQuestion(),
+        answer: transcript,
+      },
+    ];
+
+    createMockResult({finalResponse,role:selectedRole,yearsOfExperience:selectedExperience}).then((data)=>{
+      console.log(data);
+        
+    setIsSubmitting(false);
+    setShowConfirmModal(false);
+    endInterview();
+    }).catch((error)=>{
+      setIsSubmitting(false);
+      console.log(error);
+      alert("Something went wrong");
+    })
+    
+
+  
+  };
 
   const nextQuestion = () => {
-    // Save current answer
-    if (transcript.trim()) {
+    const isLastQuestion = currentQuestion === selectedInterviewQuestion.length - 1;
+
+    if (isLastQuestion) {
+      setShowConfirmModal(true);
+      return;
+    }
+  
       setAnswers((prev) => [
         ...prev,
         {
           question: getCurrentQuestion(),
-          answer: transcript,
+          answer: transcript||" ",
         },
-      ])
-    }
+      ]);
 
-    // Animate transition
-    setShowAnimation(true)
+    setShowAnimation(true);
     startTimer();
+    setTranscript("");
+    setIsListening(false);
+    recognitionRef.current.stop();
     setTimeout(() => {
-      setShowAnimation(false)
-      // Get the appropriate question set
-      // const questionSet =
-      //   selectedCategory === "technical" && selectedRole.toLowerCase() in roleSpecificQuestions
-      //     ? roleSpecificQuestions[selectedRole.toLowerCase()]
-      //     : interviewQuestions[selectedCategory]
+      setShowAnimation(false);
+      const nextQuestionIndex = currentQuestion + 1;
+      setCurrentQuestion(nextQuestionIndex);
+     
+      speakText(selectedInterviewQuestion[nextQuestionIndex]);
+    }, 500);
+  };
 
-      // Move to next question
-      if (currentQuestion < selectedInterviewQuestion.length - 1) {
-        const nextQuestionIndex = currentQuestion + 1
-        setCurrentQuestion(nextQuestionIndex)
-        setTranscript("")
-        speakText(selectedInterviewQuestion[nextQuestionIndex]);
-      } else {
-        // End of interview
-        endInterview()
-      }
-    }, 500)
-  }
-
-
-  // Start/stop speech recognition
   const toggleListening = () => {
-    if (!recognitionRef.current) return
+    if (!recognitionRef.current) return;
 
     if (isListening) {
-      recognitionRef.current.stop()
-      setIsListening(false)
-      clearInterval(timerRef.current)
+      recognitionRef.current.stop();
+      setIsListening(false);
+      clearInterval(timerRef.current);
     } else {
-      setTranscript("")
-      recognitionRef.current.start()
-      setIsListening(true)
-      startTimer()
+      setTranscript("");
+      recognitionRef.current.start();
+      setIsListening(true);
+      startTimer();
     }
-  }
+  };
 
   const getCurrentQuestion = () => {
     return selectedInterviewQuestion[currentQuestion];
-  }
+  };
 
   const endInterview = () => {
-    setInterviewStarted(false)
+    setInterviewStarted(false);
     setFeedback(
-      "Thank you for completing the interview! Here are your responses above. You can review them or start a new interview.",
-    )
-    speakText("Thank you for completing the interview! You can review your responses or start a new interview.")
-  }
+      "Thank you for completing the interview! Here are your responses above. You can review them or start a new interview."
+    );
+    speakText("Thank you for completing the interview! You can review your responses or start a new interview.");
+  };
 
   const repeatQuestion = () => {
-    speakText(getCurrentQuestion())
-  }
+    speakText(getCurrentQuestion());
+  };
 
   const downloadResponses = () => {
     const content = answers
       .map((item, index) => `Question ${index + 1}: ${item.question}\n\nYour Answer: ${item.answer}\n\n---\n\n`)
-      .join("")
+      .join("");
 
-    const blob = new Blob([content], { type: "text/plain" })
-    const url = URL.createObjectURL(blob)
-    const a = document.createElement("a")
-    a.href = url
-    a.download = "interview-responses.txt"
-    document.body.appendChild(a)
-    a.click()
-    document.body.removeChild(a)
-    URL.revokeObjectURL(url)
-  }
+    const blob = new Blob([content], { type: "text/plain" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = "interview-responses.txt";
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+  };
 
-  // Init Speech Recognition
+  const isLastQuestion = currentQuestion === selectedInterviewQuestion.length - 1;
+
   useEffect(() => {
-    loadVoices()
+    loadVoices();
 
-    const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition
+    const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
 
     if (!SpeechRecognition) {
-      alert("Speech Recognition API not supported in this browser.")
-      return
+      alert("Speech Recognition API not supported in this browser.");
+      return;
     }
 
-    const recognition = new SpeechRecognition()
-    recognition.lang = "en-GB"
-    recognition.interimResults = true
-    recognition.continuous = true
+    const recognition = new SpeechRecognition();
+    recognition.lang = "en-GB";
+    recognition.interimResults = true;
+    recognition.continuous = true;
 
     recognition.onresult = (event) => {
-      let fullTranscript = ""
+      let fullTranscript = "";
       for (let i = 0; i < event.results.length; ++i) {
-        fullTranscript += event.results[i][0].transcript
+        fullTranscript += event.results[i][0].transcript;
       }
       setTranscript(fullTranscript);
-    }
+    };
 
     recognition.onerror = (event) => {
-      console.error("Speech recognition error:", event.error)
-    }
+      console.error("Speech recognition error:", event.error);
+    };
 
     recognition.onend = () => {
-      setIsListening(false)
-    }
+      setIsListening(false);
+    };
 
-    recognitionRef.current = recognition
+    recognitionRef.current = recognition;
 
     return () => {
-      clearInterval(timerRef.current)
+      clearInterval(timerRef.current);
       if (recognitionRef.current) {
         try {
-          recognitionRef.current.stop()
+          recognitionRef.current.stop();
         } catch (e) {
-          console.log("Recognition already stopped")
+          console.log("Recognition already stopped");
         }
       }
-    }
-  }, [])
+    };
+  }, []);
 
   const getCategoryIcon = (category) => {
     switch (category) {
       case "general":
-        return <Users size={20} />
+        return <Users size={20} />;
       case "technical":
-        return <Code size={20} />
+        return <Code size={20} />;
       case "behavioral":
-        return <Briefcase size={20} />
+        return <Briefcase size={20} />;
       default:
-        return <Users size={20} />
+        return <Users size={20} />;
     }
-  }
+  };
 
   return (
     <div className="mock-interview-container">
+      {showConfirmModal && (
+        <div className="modal-overlay">
+          <div className="modal-content">
+            <div className="modal-header">
+              <AlertCircle size={24} className="modal-icon" />
+              <h3>Submit Interview?</h3>
+              <button className="modal-close" onClick={() => setShowConfirmModal(false)}>
+                <X size={20} />
+              </button>
+            </div>
+            <p>Are you sure you want to submit your interview? This action cannot be undone.</p>
+            <div className="modal-actions">
+              <button className="modal-cancel" onClick={() => setShowConfirmModal(false)}>
+                Cancel
+              </button>
+              <button 
+                className={`modal-submit ${isSubmitting ? 'submitting' : ''}`} 
+                onClick={handleSubmit}
+                disabled={isSubmitting}
+              >
+                {isSubmitting ? (
+                  <>
+                    <div className="spinner"></div>
+                    <span>Submitting...</span>
+                  </>
+                ) : (
+                  <>
+                    <Send size={18} />
+                    <span>Submit Interview</span>
+                  </>
+                )}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
       {!interviewStarted ? (
         <div className="setup-section">
           <div className="welcome-message">
@@ -579,10 +581,7 @@ const MockInterview = () => {
             <div className="question-header">
               <div className="question-counter">
                 <span className="counter-number">{currentQuestion + 1}</span>
-                <span className="counter-total">
-                  /{" "}
-                  {selectedInterviewQuestion.length}
-                </span>
+                <span className="counter-total">/ {selectedInterviewQuestion.length}</span>
               </div>
 
               <div className="question-category">
@@ -650,9 +649,21 @@ const MockInterview = () => {
                 )}
               </button>
 
-              <button className="next-button" onClick={nextQuestion}>
-                <span>Next Question</span>
-                <ChevronRight size={18} />
+              <button 
+                className={`next-button ${isLastQuestion ? "submit-button" : ""}`} 
+                onClick={nextQuestion}
+              >
+                {isLastQuestion ? (
+                  <>
+                    <span>Submit Interview</span>
+                    <Send size={18} />
+                  </>
+                ) : (
+                  <>
+                    <span>Next Question</span>
+                    <ChevronRight size={18} />
+                  </>
+                )}
               </button>
             </div>
           </div>
@@ -687,7 +698,7 @@ const MockInterview = () => {
         </div>
       )}
     </div>
-  )
-}
+  );
+};
 
-export default MockInterview
+export default MockInterview;
